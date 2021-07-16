@@ -24,8 +24,16 @@
             <td><?= $e->sexo ?></td>
             <td><?= isset($areas[$e->area_id]) ? $areas[$e->area_id] : '' ?></td>
             <td><?= $e->boletin ? 'SI' : 'NO' ?></td>
-            <td><i class='fa fa-pencil'></i> Editar</td>
-            <td><i class='fa fa-trash'></i></td>
+            <td>
+                <?= form_open('save'). form_hidden('id', $e->id) ?>
+                  <button type="submit" class="form-control"><i class="fa fa-user"></i></button>
+                <?= form_close() ?>
+            </td>
+            <td>
+                <?= form_open('delete'). form_hidden('id', $e->id) ?>
+                <button type="submit" onclick="return(confirm('¿Desea borrar el registro?'))" class="form-control"><i class="fa fa-trash"></i></button>
+                <?= form_close() ?>
+            </td>            
         </tr>
         <?php endforeach ?>
     </tbody>

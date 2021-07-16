@@ -3,63 +3,77 @@
 
 <div class="container">
 <div class="col-sm-12">
-    <h1 class="text-center"><?= $title ?></h1>
+    <h3 class="text-center"><?= $title ?></h3>
 </div>
- <?php if(@$errors){ echo @$errors; } ?>
-    
-<div class="col-sm-3"></div>
-<form action="" method="post" class="col-sm-6">
-    
+     
+<div class="col-sm-2"></div>
+<form action="" method="post" id="basic-form" class="col-sm-8">
+  <div class="alert alert-info" role="alert">Campos requeridos *</div> 
   <div class="form-group">
-    <label for="exampleInputPassword1">Nombre completo *</label>
-    <input type="text" id="name" name="name" value="<?= $data['name'] ?>" placeholder="Nombre completo" required minlength="10" class="form-control">
+    <label>Nombre completo *</label>
+    <input type="text" id="name" name="name" value="<?= $validator['name']['value'] ?>" placeholder="Nombre completo" required minlength="10" class="form-control">
+    <label for="name" class="error"><?= $validator['name']['error'] ?></label>
   </div>
     
   <div class="form-group">
     <label>Correo electrónico *</label>
-    <input type="email" id="email" name="email" value="<?= $data['email'] ?>" placeholder="Correo electrónico" class="form-control">
+    <input type="email" id="email" name="email" value="<?= $validator['email']['value'] ?>" placeholder="Correo electrónico" class="form-control" required>
     <small id="emailHelp" class="form-text text-muted">Campo único</small>
+    <label for="email" class="error"><?= $validator['email']['error'] ?></label>
   </div>
     
-  <div class="form-group"> 
-    <label >Sexo *</label>
-        <div class="radio">
-            <label><input type="radio" name="gender" value="M" <?= $data['gender'] == 'M' ? 'checked' : '' ?>>Masculino</label>
-        </div>
-        <div class="radio">
-            <label><input type="radio" name="gender" value="F" <?= $data['gender'] == 'F' ? 'checked' : '' ?>>Femenino</label>
-        </div>
-  </div> 
+<fieldset class="col-md-12">
+  <b>Sexo *</b>
+  <div class="form-row">
+    <div class="col-12 col-md-12 form-group">
+        <label class="form-check-inline">          
+          <input type="radio" name="gender" value="M" <?= $validator['gender']['value'] == 'M' ? 'checked' : '' ?> required data-msg-required="Por favor seleccione una opción"> Masculino                         
+        </label>
+        <label class="form-check-inline">
+          <input type="radio" name="gender" value="F" <?= $validator['gender']['value'] == 'F' ? 'checked' : '' ?>> Femenino
+        </label>
+        <label for="gender" class="error"><?= $validator['gender']['error'] ?></label>
+    </div>
+  </div>
+</fieldset>    
     
-  <div class="form-group"> 
-    <label>Roles *</label>
-     <?php foreach ($roles as $idr => $rol): ?>
-       <label><input type="checkbox" value="<?= $idr ?>" name="roles[]" isset($roles_empleado[$idf]) 'checked' : ''><?= $rol ?></label>
-       <br>
-     <?php endforeach ?>
-  </div>     
+<fieldset class="col-md-12">
+  <b>Roles *</b>
+  <div class="form-row">
+    <div class="col-12 col-md-12 form-group">
+    <?php $j = 1;
+      foreach ($roles as $idr => $rol): ?>          
+        <label class="form-check-inline">          
+            <input type="checkbox" name='roles[]' value="<?= $idr ?>" <?= isset($roles_empleado[$idr]) ? 'checked' : '' ?>> <b><?= $rol ?></b>                         
+        </label>
+    <?php $j++;
+         endforeach ?>   
+        <label for="roles[]" class="error"></label>
+    </div>
+  </div>
+</fieldset>     
     
   <div class="form-group">
     <label >Area *</label>
-    <?= form_dropdown('area', $areas, $data['area'], 'required class="form-control"') ?>
+    <?= form_dropdown('area', $areas, $validator['area']['value'], 'required id="area" class="form-control"') ?>
+    <label for="area" class="error"><?= $validator['area']['error'] ?></label>
   </div>    
     
-
   <div class="form-group">
-    <label>Descripción *</label>
-    <textarea name="description" class="form-control" required>
-        <?= $data['description'] ?>
-    </textarea>    
+    <label>Descripción *</label>  
+    <textarea name="description" class="form-control" rows="5" minlength="10" required><?= $validator['description']['value'] ?></textarea>
+    <label for="description" class="error"><?= $validator['description']['error'] ?></label>
   </div>    
    
-  <div class="form-group"> 
-    <label>
-        Deseo Recibir boletín informativo
-        <input type="checkbox" id="boletin" name="boletin" value="1" <?= $data['boletin'] ? 'checked' : '' ?>><br>        
-    </label>
-  </div> 
-   <?= form_hidden('send', TRUE) ?>
-  <button type="submit" class="btn btn-primary">Guardar</button>
+    <div class="form-group">       
+        <span>                
+            <label class="form-control"><b>Deseo Recibir boletín informativo</b>
+                <input type="checkbox" name="boletin" value="1" <?= $validator['boletin']['value'] ? 'checked' : '' ?> class="pull-left">                     
+            </label>
+        </span>       
+    </div> 
+   <?= form_hidden('send', TRUE). form_hidden('id', $id) ?>
+    <button type="submit" id='submit' class="btn btn-primary btn-block">GUARDAR</button>
 </form>
 </div>
 

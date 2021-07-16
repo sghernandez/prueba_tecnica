@@ -20,14 +20,6 @@ class Empleados extends BaseController
     
 	public function index() 
     {    
-        /*
-        $data = EmpleadoModel::setPost();
-        $this->model->update(1, $data);
-        
-        if(count($this->model->errors())):
-        get_print_r($this->model->errors());
-        endif; */
-        
         $data = [
             'employes' => $this->model->findAll(),
             'title' => 'Listado de Empleados',
@@ -39,44 +31,74 @@ class Empleados extends BaseController
     
     public function save()
     {
-        $errors = '';
-        $id = $this->request->getPost('id');
-        $post = EmpleadoModel::setPost();
+        $errors = $roles_empleado = [];
+        $id = $this->request->getPost('id');        
         
         if($this->request->getPost('send'))
         {
-            if($id){ $this->model->update($id, $post); }            
-           /* else { $this->model->insert($post); }
+            $post = EmpleadoModel::setPost();
             
-            $errors = $this->model->errors() ? $this->failValidationErrors($errors) : [];    */              
+            if($id){ $this->model->update($id, $post); }            
+            else { $this->model->insert($post); }
+            $errors = $this->model->errors();
+            
+            if( ! $this->model->errors() ) 
+            {
+                $this->setRoles($id);
+                session()->setFlashdata('success', 'Información guardada satisfactoriamente.');
+                return redirect()->to('empleados');
+            }                                    
         }
-               
+
+        return view('empleados/empleados_form', $this->datForm($id, $errors));
+    }
+    
+    
+    private function datForm($id, $errors)
+    {
+        $title = ($id ? 'Editar' : 'Nuevo'). ' Empleado';
         $roles_empleado = [];
-        $empleado = $id ? $this->model->getWhere(['id' => $id])->getResult() : [];   
-        
-        $r_emp = $id ? $this->model->getWhere(['empleado_id' => $id])
-            ->get('empleado_rol')
-            ->getResult() : [];  
-        
+        $empleado = $id ? $this->model->getWhere(['id' => $id])->getResult() : [];           
+        $r_emp = $id ? $this->model->query('SELECT * FROM empleado_rol WHERE empleado_id = '. $id)->getResult() : [];                                 
         foreach ($r_emp as $r){ $roles_empleado[$r->rol_id] = $r->rol_id; }
+        $nuevos_roles = $this->request->getPost('roles') ? : [];                
         
-        $data = [
-            'title' => ($id ? 'Editar' : 'Nuevo'). ' Empleado',
-            'data' => [
-                'name' => $errors ? set_value('name') : (isset($empleado->nombre) ? $empleado->nombre : ''),
-                'gender' => $errors ? set_value('gender') : (isset($empleado->sexo) ? $empleado->sexo : ''),
-                'email' => $errors ? set_value('email') : (isset($empleado->email) ? $empleado->email : ''),
-                'area' => $errors ? set_value('area') : (isset($empleado->area_id) ? $empleado->area_id : ''),
-                'boletin' => $errors ? set_value('boletin') : (isset($empleado->boletin) ? $empleado->boletin : ''),
-                'description' => $errors ? set_value('description') : (isset($empleado->descripcion) ? $empleado->descripcion : ''),
-                'roles_empleado' => $roles_empleado,
-                'errors' => $errors
-             ]
-        ];
+        $validator = inputValidation(
+                ['name' => 'nombre', 'gender' => 'sexo', 'email' => 'email', 'area' => 'area_id', 'boletin' => 'boletin', 'description' => 'descripcion'], 
+                $empleado, $errors
+        );
         
-        return view('empleados/empleados_form', array_merge($data, $this->getForaneas()));
+        // se adiciona los errores de los roles
+        $validator['roles']['error'] =  $this->request->getPost('send') && !count($nuevos_roles) ? 'You must choosse at least one rol.' : '';
+        
+        foreach ($nuevos_roles as $idRol) {
+            $roles_empleado[$idRol] = $idRol; // sobreescribe con lo que se envía del formulario
+        }
+        
+        return array_merge(compact('roles_empleado', 'validator', 'title', 'id'),  $this->getForaneas());
+                
+    }
+    
+    
+    private function setRoles($id)
+    {
+        $db = \Config\Database::connect();
+        $id = $id ? : $db->insertID();
+        $db->query('DELETE FROM empleado_rol WHERE empleado_id = '. $id);
+        
+        foreach ($this->request->getPost('roles') as $r) 
+        {
+            $roles[] = [
+                'empleado_id' => $id,
+                'rol_id' => $r
+            ];
+        }
+                
+        $builder = $db->table('empleado_rol');        
+        $builder->insertBatch($roles);      
     }
 
+    
     private function getForaneas()
     {        
         $area = new AreaModel(); 
@@ -89,4 +111,19 @@ class Empleados extends BaseController
         
         return compact('areas', 'roles');       
     }
+    
+    
+    public function delete()
+    {                
+        if($id = $this->request->getPost('id')) 
+        {
+            $this->model->query('DELETE FROM empleados WHERE id = '. $id);
+            $this->model->query('DELETE FROM empleado_rol WHERE empleado_id = '. $id);
+            
+            session()->setFlashdata('success', 'Registro borrado satisfactoriamente.');
+        }
+        
+        return redirect()->to('empleados');
+    }    
+    
 }

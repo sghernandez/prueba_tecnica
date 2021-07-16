@@ -1,4 +1,29 @@
 <?php
+    
+    /* inputValidation: retorna un arreglo con los valores del
+     * los inputs del formulario y sus errores
+     * $inputs => arreglo de clave => valor ej. ['name' => 'nombre']
+     *            donde el inice es el nombre del input y el valor el campo de la BD
+     * 
+     * $objet: es el objeto que contiene la fila que se valida
+     * $errors: arreglo de errores que retona el Modeo de CI
+     */
+    function inputValidation($inputs, $object, $errors)
+    {                
+        $object = isset($object[0]) ? $object[0] : [];
+        foreach ($inputs as $input => $key) 
+        {
+            //echo $object->{$key};
+            $data[$input] = [
+            'value' =>  $errors ? set_value($input) : (isset($object->{$key}) ? $object->{$key} : ''),
+               'error' => isset($errors[$key]) ? $errors[$key] : ''
+            ];
+                       
+        }
+        
+        return $data;       
+    }    
+    
 
 /*
   -------------------------------------------------------------------

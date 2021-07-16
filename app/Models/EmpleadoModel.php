@@ -30,8 +30,8 @@ class EmpleadoModel extends Model
         
         $this->id = intval($this->id = isset($_POST['id']) ? $_POST['id'] : '');
         $this->validationRules = [
-            'nombre' => 'required|alpha|min_length[10]|max_length[255]',
-            'email' => "required|is_unique[empleado.email,$this->primaryKey,$this->id]|valid_email",
+            'nombre' => 'required|min_length[10]|max_length[255]',
+            'email' => "required|is_unique[$this->table.email,$this->primaryKey,$this->id]|valid_email",
             'sexo' => 'required|in_list[M,F]',
             'area_id' => 'required',
             'descripcion' => 'required|min_length[10]',
